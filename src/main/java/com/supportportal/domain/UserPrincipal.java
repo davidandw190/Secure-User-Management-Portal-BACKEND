@@ -1,4 +1,4 @@
-package com.supportportal.supportportal.domain;
+package com.supportportal.domain;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,11 +9,11 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
 
-public class userPrincipal implements UserDetails {
+public class UserPrincipal implements UserDetails {
 
     private final User user;
 
-    public userPrincipal(User user) {
+    public UserPrincipal(User user) {
         this.user = user;
     }
 

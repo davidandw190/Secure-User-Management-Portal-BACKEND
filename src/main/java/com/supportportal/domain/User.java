@@ -1,4 +1,4 @@
-package com.supportportal.supportportal.domain;
+package com.supportportal.domain;
 
 import jakarta.persistence.*;
 
