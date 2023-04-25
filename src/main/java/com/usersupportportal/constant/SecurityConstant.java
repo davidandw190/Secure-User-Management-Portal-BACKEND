@@ -1,10 +1,10 @@
 package com.usersupportportal.constant;
 
+
 /**
  * Contains constants used for security purposes such as
  * JWT token settings, authorization messages, and public URLs
  */
-
 public class SecurityConstant {
     public static final long EXPIRATION_TIME = 432_000_000;     // 5 DAYS EXPRESSED IN MILLISECONDS
     public static final String TOKEN_PREFIX = "Bearer ";

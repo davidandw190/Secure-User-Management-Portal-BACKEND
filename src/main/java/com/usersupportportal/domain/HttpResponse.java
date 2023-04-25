@@ -1,12 +1,13 @@
 package com.usersupportportal.domain;
 
+
 import org.springframework.http.HttpStatus;
+
 
 /**
  * Used to provide a consistent way of
  * returning HTTP responses from the server.
  */
-
 public class HttpResponse {
     private int httpStatusCode;
     private HttpStatus httpStatus;

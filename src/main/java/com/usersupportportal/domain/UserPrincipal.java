@@ -1,5 +1,6 @@
 package com.usersupportportal.domain;
 
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,12 +10,12 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
 
+
 /**
  * Represents the principal details of a User for authentication and authorization purposes.
  * Implements the UserDetails interface from Spring Security framework.
  * Includes methods to get user authorities, password, username, and account status.
  */
-
 public class UserPrincipal implements UserDetails {
 
     private final User user;
