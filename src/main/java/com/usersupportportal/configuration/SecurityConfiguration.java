@@ -13,13 +13,18 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.ldap.EmbeddedLdapServerContextSourceFactoryBean;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import static com.usersupportportal.constant.SecurityConstant.PUBLIC_URLS;
+
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 
@@ -45,24 +50,52 @@ public class SecurityConfiguration {
         this.userDetailsService = userDetailsService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
-
-
+//.authorizeHttpRequests().requestMatchers("/user/home").permitAll().anyRequest().authenticated()
     @Bean
-    public SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception {
-        http.csrf().disable().cors().and()
-                .sessionManagement().sessionCreationPolicy(STATELESS)
-                .and().authorizeRequests().anyRequest().authenticated()
+    public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
+        http
+                .csrf().disable().cors()
+                .and()
+                .authorizeHttpRequests().anyRequest().authenticated()
                 .and()
                 .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
                 .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
+
+/////////////////////////
+
+    private RequestMatcher getExcludedURLS() {
+        return new OrRequestMatcher(
+                new AntPathRequestMatcher("/api/toBeCreated/**"),
+                new AntPathRequestMatcher("/api/toBeCreated/**"),
+                new AntPathRequestMatcher("/api/toBeCreated/**")
+        );
+    }
+
 
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
     }
+
+
+//    @Bean
+//    public SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception {
+//        http.csrf().disable().cors().and()
+//                .sessionManagement().sessionCreationPolicy(STATELESS)
+//                .and().authorizeRequests().anyRequest().authenticated()
+//                .and()
+//                .exceptionHandling().accessDeniedHandler(jwtAccessDeniedHandler)
+//                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+//                .and()
+//                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+//        return http.build();
+//    }
 
 
 
