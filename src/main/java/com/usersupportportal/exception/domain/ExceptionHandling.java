@@ -18,6 +18,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -119,7 +120,15 @@ public class ExceptionHandling {
         LOGGER.error(exception.getMessage());
         return createHttpResponse(INTERNAL_SERVER_ERROR, ERROR_PROCESSING_FILE);
     }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<HttpResponse> methodNotSupportedException(NoHandlerFoundException e) {
+        return createHttpResponse(BAD_REQUEST, "Hmm..Seems like this page was not found.");
+
+    }
 }
+
+
 
 
 
