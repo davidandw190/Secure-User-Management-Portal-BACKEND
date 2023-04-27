@@ -26,7 +26,7 @@ public class User implements Serializable {
     private Date lastLoginDateDisplay;
 
     @Transient
-    private String[] roles;
+    private String role;
 
     @Transient
     private String[] authorities;
@@ -36,7 +36,7 @@ public class User implements Serializable {
 
     public User(Long id, String userId, String firstName, String lastName, String username, String password,
                 String email, String profileImageUrl, Date joinDate, Date lastLoginDate, Date lastLoginDateDisplay,
-                String[] roles, String[] authorities, boolean isActive, boolean isNotLocked) {
+                String role, String[] authorities, boolean isActive, boolean isNotLocked) {
         this.id = id;
         this.userId = userId;
         this.firstName = firstName;
@@ -48,7 +48,7 @@ public class User implements Serializable {
         this.joinDate = joinDate;
         this.lastLoginDate = lastLoginDate;
         this.lastLoginDateDisplay = lastLoginDateDisplay;
-        this.roles = roles;
+        this.role = role;
         this.authorities = authorities;
         this.isActive = isActive;
         this.isNotLocked = isNotLocked;
@@ -67,7 +67,7 @@ public class User implements Serializable {
     }
 
     public String getUserId() {
-        return userId;
+        return this.userId;
     }
 
     public void setUserId(String userId) {
@@ -75,7 +75,7 @@ public class User implements Serializable {
     }
 
     public String getFirstName() {
-        return firstName;
+        return this.firstName;
     }
 
     public void setFirstName(String firstName) {
@@ -83,7 +83,7 @@ public class User implements Serializable {
     }
 
     public String getLastName() {
-        return lastName;
+        return this.lastName;
     }
 
     public void setLastName(String lastName) {
@@ -91,7 +91,7 @@ public class User implements Serializable {
     }
 
     public String getUsername() {
-        return username;
+        return this.username;
     }
 
     public void setUsername(String username) {
@@ -99,7 +99,7 @@ public class User implements Serializable {
     }
 
     public String getPassword() {
-        return password;
+        return this.password;
     }
 
     public void setPassword(String password) {
@@ -107,7 +107,7 @@ public class User implements Serializable {
     }
 
     public String getEmail() {
-        return email;
+        return this.email;
     }
 
     public void setEmail(String email) {
@@ -115,7 +115,7 @@ public class User implements Serializable {
     }
 
     public String getProfileImageUrl() {
-        return profileImageUrl;
+        return this.profileImageUrl;
     }
 
     public void setProfileImageUrl(String profileImageUrl) {
@@ -123,7 +123,7 @@ public class User implements Serializable {
     }
 
     public Date getJoinDate() {
-        return joinDate;
+        return this.joinDate;
     }
 
     public void setJoinDate(Date joinDate) {
@@ -131,7 +131,7 @@ public class User implements Serializable {
     }
 
     public Date getLastLoginDate() {
-        return lastLoginDate;
+        return this.lastLoginDate;
     }
 
     public void setLastLoginDate(Date lastLoginDate) {
@@ -146,12 +146,12 @@ public class User implements Serializable {
         this.lastLoginDateDisplay = lastLoginDateDisplay;
     }
 
-    public String[] getRoles() {
-        return roles;
+    public String getRole() {
+        return this.role;
     }
 
-    public void setRoles(String[] roles) {
-        this.roles = roles;
+    public void setRoles(String role) {
+        this.role = role;
     }
 
     public String[] getAuthorities() {
@@ -163,7 +163,7 @@ public class User implements Serializable {
     }
 
     public boolean isActive() {
-        return isActive;
+        return this.isActive;
     }
 
     public void setActive(boolean active) {
@@ -171,7 +171,7 @@ public class User implements Serializable {
     }
 
     public boolean isNotLocked() {
-        return isNotLocked;
+        return this.isNotLocked;
     }
 
     public void setNotLocked(boolean notLocked) {
