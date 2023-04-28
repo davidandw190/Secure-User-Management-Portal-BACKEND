@@ -1,8 +1,9 @@
-package com.usersupportportal.exception.domain;
+package com.usersupportportal.exception;
 
 
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.usersupportportal.domain.HttpResponse;
+import com.usersupportportal.exception.domain.*;
 import jakarta.persistence.NoResultException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +75,11 @@ public class ExceptionHandling implements ErrorController {
         return createHttpResponse(UNAUTHORIZED, exception.getMessage());
     }
 
+    @ExceptionHandler(UsernameExistException.class)
+    public ResponseEntity<HttpResponse> usernameExistException(UsernameExistException exception) {
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
+    }
+
     @ExceptionHandler(EmailExistException.class)
     public ResponseEntity<HttpResponse> emailExistException(EmailExistException exception) {
         return createHttpResponse(BAD_REQUEST, exception.getMessage());
@@ -128,25 +134,17 @@ public class ExceptionHandling implements ErrorController {
         return createHttpResponse(BAD_REQUEST, "Hmm..Seems like this page was not found.");
     }
 
+
+
     @RequestMapping(ERROR_PATH)
     public ResponseEntity<HttpResponse> notFound404() {
         return createHttpResponse(NOT_FOUND, "There is no mapping for the URL you entered.. :/");
     }
+
+    public String getErrorPath() {
+        return ERROR_PATH;
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

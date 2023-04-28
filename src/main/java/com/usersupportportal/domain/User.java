@@ -25,9 +25,7 @@ public class User implements Serializable {
     private Date lastLoginDate;
     private Date lastLoginDateDisplay;
 
-    @Transient
     private String role;
-
     @Transient
     private String[] authorities;
 
@@ -150,7 +148,7 @@ public class User implements Serializable {
         return this.role;
     }
 
-    public void setRoles(String role) {
+    public void setRole(String role) {
         this.role = role;
     }
 
