@@ -28,6 +28,10 @@ import java.util.List;
 import static com.usersupportportal.constant.UserImplConstant.*;
 import static com.usersupportportal.enumeration.Role.ROLE_USER;
 
+/**
+ * Implements the UserService and UserDetailsService interfaces, and provides
+ * functionality for registering new users, retrieving users, and authenticating users.
+ */
 @Service
 @Transactional
 @Qualifier("userDetailsService")
@@ -42,23 +46,31 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
+
+    /**
+     *  Finds and returns a user with a given username, and updates their last login date if they exist
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findUserByUsername(username);
         if (user == null) {
-            LOGGER.error("User not found by username " + username);
-            throw new UsernameNotFoundException("User not found by username: " + username);
+            LOGGER.error(NO_USER_FOUND_BY_USERNAME + username);
+            throw new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username);
         } else {
             user.setLastLoginDateDisplay(user.getLastLoginDate());
             user.setLastLoginDate(new Date());
             userRepository.save(user);
             UserPrincipal userPrincipal = new UserPrincipal(user);
-            LOGGER.info("Returning found user by username: " + username);
+            LOGGER.info(FOUND_USER_BY_USERNAME + username);
             return userPrincipal;
         }
 
     }
 
+    /**
+     *  Creates and saves a new user with the provided details, generating a random password
+     *  (for now) and user ID, and checking for duplicate email and username.
+     */
     @Override
     public User register(String firstName, String lastName, String username, String email)
             throws UserNotFoundException, EmailExistException, UsernameExistException {
@@ -86,20 +98,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return null;
     }
 
-    private String getTemporaryProfileImageUrl() {
-        return ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/image/profile/temp").toUriString();
+    @Override
+    public List<User> getUsers() {
+        return userRepository.findAll();
     }
 
-    private String generatePassword() {
-        return RandomStringUtils.randomAlphanumeric(10);        // TEMPORARY
+    @Override
+    public User findUserByUsername(String username) {
+        return userRepository.findUserByUsername(username);
     }
 
-    private String generateUserId() {
-        return RandomStringUtils.randomNumeric(10);             // TEMPORARY
-    }
-
-    private String encodePassword(String password) {
-        return bCryptPasswordEncoder.encode(password);
+    @Override
+    public User findUserByEmail(String email) {
+        return userRepository.findUserByEmail(email);
     }
 
     private User validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail)
@@ -134,20 +145,22 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
     }
 
-    @Override
-    public List<User> getUsers() {
-        return null;
+    private String getTemporaryProfileImageUrl() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/image/profile/temp").toUriString();
     }
 
-    @Override
-    public User findUserByUsername(String username) {
-        return null;
+    private String generatePassword() {
+        return RandomStringUtils.randomAlphanumeric(10);        // TEMPORARY
     }
 
-    @Override
-    public User findUserByEmail(String email) {
-        return null;
+    private String generateUserId() {
+        return RandomStringUtils.randomNumeric(10);             // TEMPORARY
     }
+
+    private String encodePassword(String password) {
+        return bCryptPasswordEncoder.encode(password);
+    }
+
 }
 
 

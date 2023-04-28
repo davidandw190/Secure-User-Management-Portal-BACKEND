@@ -19,7 +19,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 
-/*
+/**
  * Implements the AccessDeniedHandler interface to handle access denied exceptions
  */
 @Component

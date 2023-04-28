@@ -9,7 +9,8 @@ import java.util.List;
 
 public interface UserService {
 
-    User register(String firstName, String lastName, String username, String email) throws UserNotFoundException, EmailExistException, UsernameExistException;
+    User register(String firstName, String lastName, String username, String email)
+            throws UserNotFoundException, EmailExistException, UsernameExistException;
 
     List<User> getUsers();
     User findUserByUsername(String username);

@@ -20,6 +20,10 @@ import java.util.List;
 import static com.usersupportportal.constant.SecurityConstant.*;
 import static org.springframework.http.HttpStatus.OK;
 
+/**
+ * It extracts the JWT token from the request header, validates it, and sets the user
+ * authentication context
+ */
 @Component
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 

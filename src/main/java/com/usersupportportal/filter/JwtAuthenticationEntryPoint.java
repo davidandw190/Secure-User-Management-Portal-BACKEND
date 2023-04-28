@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/*
+/**
  * Handles unauthorized access exceptions and returns a JSON response for failed authentications.
  */
 @Component
