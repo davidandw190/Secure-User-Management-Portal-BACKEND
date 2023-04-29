@@ -4,23 +4,24 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import com.usersupportportal.service.LoginAttemptService;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class LoginAttemptServiceImpl implements LoginAttemptService{
+public class LoginAttemptServiceImpl implements LoginAttemptService {
     public static final int MAXIMUM_NUMBER_OF_ATTEMPTS = 5;
     public static final int ATTEMPT_INCREMENT = 1;
-    private LoadingCache<String, Integer> loginAttemptCache;
+    private final LoadingCache<String, Integer> loginAttemptCache;
 
     public LoginAttemptServiceImpl() {
         super();
         loginAttemptCache = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES)
-                .maximumSize(100).build(new CacheLoader<String, Integer>() {
+                .maximumSize(100).build(new CacheLoader<>() {
                     @Override
-                    public Integer load(String s) throws Exception {
+                    public Integer load(String s) {
                         return 0;
                     }
                 });
@@ -34,7 +35,7 @@ public class LoginAttemptServiceImpl implements LoginAttemptService{
     @Override
     public void addUserToLoginAttemptCache(String username) {
         int attempts = 0;
-        try{
+        try {
             attempts = ATTEMPT_INCREMENT + loginAttemptCache.get(username);
             loginAttemptCache.put(username, attempts);
         } catch (ExecutionException e) {
@@ -43,59 +44,64 @@ public class LoginAttemptServiceImpl implements LoginAttemptService{
     }
 
     @Override
-    public boolean hasExceededMaxAttempts(String username) throws ExecutionException {
-        return loginAttemptCache.get(username) >= MAXIMUM_NUMBER_OF_ATTEMPTS;
+    public boolean hasExceededMaxAttempts(String username) {
+        try {
+            return loginAttemptCache.get(username) >= MAXIMUM_NUMBER_OF_ATTEMPTS;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
