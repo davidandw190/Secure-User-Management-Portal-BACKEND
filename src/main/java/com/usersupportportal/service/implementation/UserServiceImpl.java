@@ -3,13 +3,16 @@ package com.usersupportportal.service.implementation;
 
 import com.usersupportportal.domain.User;
 import com.usersupportportal.domain.UserPrincipal;
+import com.usersupportportal.enumeration.Role;
 import com.usersupportportal.exception.domain.EmailExistException;
+import com.usersupportportal.exception.domain.EmailNotFoundException;
 import com.usersupportportal.exception.domain.UserNotFoundException;
 import com.usersupportportal.exception.domain.UsernameExistException;
 import com.usersupportportal.repository.UserRepository;
 import com.usersupportportal.service.EmailService;
 import com.usersupportportal.service.LoginAttemptService;
 import com.usersupportportal.service.UserService;
+import io.micrometer.common.util.internal.logging.InternalLogger;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,14 +25,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.mail.MessagingException;
 import java.util.Date;
 import java.util.List;
 
+import static com.usersupportportal.constant.FileConstant.DEFAULT_USER_IMAGE_PATH;
 import static com.usersupportportal.constant.UserImplConstant.*;
 import static com.usersupportportal.enumeration.Role.ROLE_USER;
+import static org.apache.logging.log4j.util.Strings.EMPTY;
 
 /**
  * Implements the UserService and UserDetailsService interfaces, and provides
@@ -77,20 +83,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     }
 
-    private void validateLoginAttempt(User user) {
-        if (user.isNotLocked()) {
-            if (loginAttemptService.hasExceededMaxAttempts(user.getUsername())) {
-                user.setNotLocked(false);
-            }else {
-                user.setNotLocked(true);
-            }
-        } else {
-            loginAttemptService.evictUserFromLoginAttemptCache((user.getUsername()));
-
-        }
-    }
-
-
     /**
      *  Creates and saves a new user with the provided details, generating a random password
      *  (for now) and user ID, and checking for duplicate email and username.
@@ -122,6 +114,33 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return null;
     }
 
+
+    @Override
+    public User addNewUser(String firstName, String lastName, String username, String email, String role,
+                           boolean isNonLocked, boolean isActive, MultipartFile profileImage)
+            throws UserNotFoundException, EmailExistException, UsernameExistException {
+
+        validateNewUsernameAndEmail(EMPTY, username, email);
+        User user = new User();
+        String password = generatePassword();
+        user.setUserId(generateUserId());
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setJoinDate(new Date());
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(encodePassword(password));
+        user.setNotLocked(isNonLocked);
+        user.setActive(isActive);
+        user.setRole(getRoleEnumName(role).name());
+        user.setAuthorities(getRoleEnumName(role).getAuthorities());
+        user.setProfileImageUrl(getTemporaryProfileImageUrl(username));
+        userRepository.save(user);
+        saveProfileImage(user, profileImage);
+
+        return user;
+    }
+
     @Override
     public List<User> getUsers() {
         return userRepository.findAll();
@@ -135,6 +154,58 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User findUserByEmail(String email) {
         return userRepository.findUserByEmail(email);
+    }
+
+
+    @Override
+    public User updateUser(String currentUsername, String newFirstName, String newLastName, String newUsername,
+                           String newEmail, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage)
+            throws UserNotFoundException, EmailExistException, UsernameExistException {
+
+        User currentUser = validateNewUsernameAndEmail(currentUsername, newUsername, newEmail);
+        assert currentUser != null;                 //  asserting just in case, but this is never false
+
+        currentUser.setFirstName(newFirstName);
+        currentUser.setLastName(newLastName);
+        currentUser.setUsername(newUsername);
+        currentUser.setEmail(newEmail);
+        currentUser.setNotLocked(isNonLocked);
+        currentUser.setActive(isActive);
+        currentUser.setRole(getRoleEnumName(role).name());
+        currentUser.setAuthorities(getRoleEnumName(role).getAuthorities());
+
+        userRepository.save(currentUser);
+        saveProfileImage(currentUser, profileImage);
+
+        return currentUser;
+    }
+
+    @Override
+    public void deleteUser(long id) {
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public void resetPassword(String email) throws EmailNotFoundException, MessagingException {
+        User user = findUserByEmail(email);
+
+        if (user == null) {
+            throw new EmailNotFoundException(NO_USER_FOUND_BY_EMAIL + email);
+        }
+
+        String password = generatePassword();
+        user.setPassword(encodePassword(password));
+        userRepository.save(user);
+        emailService.sendNewPasswordEmail(user.getFirstName(), password, email);
+    }
+
+    @Override
+    public User updateProfileImage(String username, MultipartFile newProfileImage)
+            throws UserNotFoundException, EmailExistException, UsernameExistException {
+
+        User user = validateNewUsernameAndEmail(username, null, null);
+        saveProfileImage(user, newProfileImage);
+        return user;
     }
 
     private User validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail)
@@ -169,8 +240,27 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
     }
 
-    private String getTemporaryProfileImageUrl() {
-        return ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/image/profile/temp").toUriString();
+    private void validateLoginAttempt(User user) {
+        if (user.isNotLocked()) {
+            if (loginAttemptService.hasExceededMaxAttempts(user.getUsername())) {
+                user.setNotLocked(false);
+            }else {
+                user.setNotLocked(true);
+            }
+        } else {
+            loginAttemptService.evictUserFromLoginAttemptCache((user.getUsername()));
+
+        }
+    }
+
+    private void saveProfileImage(User user, MultipartFile profileImage) {
+    }
+
+    private Role getRoleEnumName(String role) {
+    }
+
+    private String getTemporaryProfileImageUrl(String username) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().path(DEFAULT_USER_IMAGE_PATH + username).toUriString();
     }
 
     private String generatePassword() {

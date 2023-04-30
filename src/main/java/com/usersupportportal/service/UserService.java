@@ -2,6 +2,7 @@ package com.usersupportportal.service;
 
 import com.usersupportportal.domain.User;
 import com.usersupportportal.exception.domain.EmailExistException;
+import com.usersupportportal.exception.domain.EmailNotFoundException;
 import com.usersupportportal.exception.domain.UserNotFoundException;
 import com.usersupportportal.exception.domain.UsernameExistException;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +19,24 @@ public interface UserService {
     User findUserByUsername(String username);
 
     User findUserByEmail(String email);
+
+    User addNewUser(String firstName, String lastName, String username, String email, String role, boolean isNonLocked,
+                    boolean isActive, MultipartFile profileImage)
+            throws UserNotFoundException, EmailExistException, UsernameExistException;
+
+    User updateUser(String currentUsername, String newFirstName, String newLastName, String newUsername, String newEmail,
+                    String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage)
+            throws UserNotFoundException, EmailExistException, UsernameExistException;
+
+
+    User updateProfileImage(String username, MultipartFile newProfileImage)
+            throws UserNotFoundException, EmailExistException, UsernameExistException;
+
+    void resetPassword(String email) throws EmailNotFoundException, MessagingException;
+
+    void deleteUser(long id);
+
+
 }
 
 
