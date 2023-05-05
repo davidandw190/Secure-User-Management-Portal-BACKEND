@@ -19,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.usersupportportal.constant.SecurityConstant.JWT_TOKEN_HEADER;
 import static org.springframework.http.HttpStatus.OK;
@@ -44,6 +46,7 @@ public class UserResource extends ExceptionHandling {
             throws UserNotFoundException, EmailExistException, UsernameExistException, MessagingException {
 
         User newUser = userService.register(user.getFirstName(), user.getLastName(), user.getUsername(), user.getEmail());
+
         return new ResponseEntity<>(newUser, OK);
     }
 
@@ -65,6 +68,39 @@ public class UserResource extends ExceptionHandling {
 
     }
 
+    @PostMapping("/update")
+    public ResponseEntity<User> updateUser(@RequestParam("currentUsername") String currentUsername,
+                                           @RequestParam("firstName") String firstName,
+                                           @RequestParam("lastName") String lastName,
+                                           @RequestParam("username") String username,
+                                           @RequestParam("email") String email,
+                                           @RequestParam("role") String role,
+                                           @RequestParam("isActive") String isActive,      // We will do the conversion
+                                           @RequestParam("isNonLocked") String isNonLocked, // to boolean in the backend
+                                           @RequestParam(value = "profileImage", required = false) MultipartFile profileImage
+    ) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException {
+
+        User updatedUser = userService.updateUser(currentUsername, firstName, lastName, username, email, role,
+                Boolean.parseBoolean(isActive), Boolean.parseBoolean(isActive), profileImage);
+
+        return new ResponseEntity<> (updatedUser, OK);
+
+    }
+
+    @GetMapping("/find/{username}")
+    public ResponseEntity<User> getUser(@PathVariable("username") String username) {
+
+        User foundUser = userService.findUserByUsername(username);
+
+        return new ResponseEntity<>(foundUser, OK);
+
+    }
+    @GetMapping("/list")
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userService.getUsers();
+        return new ResponseEntity<>(users, OK);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<User> login(@RequestBody User user)
             throws UserNotFoundException, EmailExistException, UsernameExistException {
@@ -77,13 +113,17 @@ public class UserResource extends ExceptionHandling {
         return new ResponseEntity<>(loginUser, OK);
     }
 
+
     private HttpHeaders getJwtHeader(UserPrincipal user) {
+
         HttpHeaders headers = new HttpHeaders();
         headers.add(JWT_TOKEN_HEADER, jwtTokenProvider.generateJwtToken(user));
+
         return headers;
     }
 
     private void authenticate(String username, String password) {
+
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
     }
