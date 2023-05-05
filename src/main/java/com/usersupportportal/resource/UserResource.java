@@ -15,16 +15,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.mail.MessagingException;
+import java.io.IOException;
 
 import static com.usersupportportal.constant.SecurityConstant.JWT_TOKEN_HEADER;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping(path={"/", "/user"})
 public class UserResource extends ExceptionHandling {
 
     private final UserService userService;
-    private AuthenticationManager authenticationManager;
-    private JWTTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
+    private final JWTTokenProvider jwtTokenProvider;
 
     @Autowired
     public UserResource(UserService userService, AuthenticationManager authenticationManager, JWTTokenProvider jwtTokenProvider) {
@@ -36,10 +41,28 @@ public class UserResource extends ExceptionHandling {
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody User user)
-            throws UserNotFoundException, EmailExistException, UsernameExistException {
+            throws UserNotFoundException, EmailExistException, UsernameExistException, MessagingException {
 
         User newUser = userService.register(user.getFirstName(), user.getLastName(), user.getUsername(), user.getEmail());
-        return new ResponseEntity<>(newUser, HttpStatus.OK);
+        return new ResponseEntity<>(newUser, OK);
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<User> addNewUser(@RequestParam("firstName") String firstName,
+                                           @RequestParam("lastName") String lastName,
+                                           @RequestParam("username") String username,
+                                           @RequestParam("email") String email,
+                                           @RequestParam("role") String role,
+                                           @RequestParam("isActive") String isActive,      // We will do the conversion
+                                           @RequestParam("isNonLocked") String isNonLocked, // to boolean in the backend
+                                           @RequestParam(value = "profileImage", required = false) MultipartFile profileImage
+                            ) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException {
+
+        User newUser = userService.addNewUser(firstName, lastName, username, email, role,
+                Boolean.parseBoolean(isActive), Boolean.parseBoolean(isActive), profileImage);
+
+        return new ResponseEntity<> (newUser, OK);
+
     }
 
     @PostMapping("/login")
@@ -51,7 +74,7 @@ public class UserResource extends ExceptionHandling {
         UserPrincipal userPrincipal = new UserPrincipal(loginUser);
         HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
 
-        return new ResponseEntity<>(loginUser, HttpStatus.OK);
+        return new ResponseEntity<>(loginUser, OK);
     }
 
     private HttpHeaders getJwtHeader(UserPrincipal user) {
