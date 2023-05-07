@@ -1,9 +1,11 @@
 package com.usersupportportal.resource;
 
+import com.usersupportportal.domain.HttpResponse;
 import com.usersupportportal.domain.User;
 import com.usersupportportal.domain.UserPrincipal;
 import com.usersupportportal.exception.ExceptionHandling;
 import com.usersupportportal.exception.domain.EmailExistException;
+import com.usersupportportal.exception.domain.EmailNotFoundException;
 import com.usersupportportal.exception.domain.UserNotFoundException;
 import com.usersupportportal.exception.domain.UsernameExistException;
 import com.usersupportportal.service.UserService;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.usersupportportal.constant.SecurityConstant.JWT_TOKEN_HEADER;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
@@ -99,6 +102,31 @@ public class UserResource extends ExceptionHandling {
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getUsers();
         return new ResponseEntity<>(users, OK);
+    }
+
+    @GetMapping("/resetPassword/{email}")
+    public ResponseEntity<List<User>> resetPassword(@PathVariable("email") String email)
+            throws EmailNotFoundException, MessagingException {
+
+        userService.resetPassword(email);
+
+        return response(OK, "An email with a new password sent to: " + email);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAnyAuthority('user:delete')")
+    public ResponseEntity<List<User>> deleteUser(@PathVariable("id") long id) {
+        userService.deleteUser(id);
+        return response(NO_CONTENT, "User deleted successfully!");
+    }
+
+    @PostMapping("/updateProfileImage")
+    public ResponseEntity<User> updateProfileImage(@RequestParam("username") String username,
+                                                   @RequestParam("profileImage") MultipartFile profileImage
+    ) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException {
+
+        User user = userService.updateProfileImage(username, profileImage);
+        return new ResponseEntity<> (user, OK);
     }
 
     @PostMapping("/login")
