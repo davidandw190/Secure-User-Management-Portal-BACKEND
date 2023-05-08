@@ -53,6 +53,19 @@ public class UserResource extends ExceptionHandling {
         return new ResponseEntity<>(newUser, OK);
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<User> login(@RequestBody User user)
+            throws UserNotFoundException, EmailExistException, UsernameExistException {
+
+        authenticate(user.getUsername(), user.getPassword());
+        User loginUser = userService.findUserByUsername(user.getUsername());
+        UserPrincipal userPrincipal = new UserPrincipal(loginUser);
+        HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
+
+        return new ResponseEntity<>(loginUser, OK);
+    }
+
+
     @PostMapping("/add")
     public ResponseEntity<User> addNewUser(@RequestParam("firstName") String firstName,
                                            @RequestParam("lastName") String lastName,
@@ -105,7 +118,7 @@ public class UserResource extends ExceptionHandling {
     }
 
     @GetMapping("/resetPassword/{email}")
-    public ResponseEntity<List<User>> resetPassword(@PathVariable("email") String email)
+    public ResponseEntity<HttpResponse> resetPassword(@PathVariable("email") String email)
             throws EmailNotFoundException, MessagingException {
 
         userService.resetPassword(email);
@@ -115,7 +128,7 @@ public class UserResource extends ExceptionHandling {
 
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasAnyAuthority('user:delete')")
-    public ResponseEntity<List<User>> deleteUser(@PathVariable("id") long id) {
+    public ResponseEntity<HttpResponse> deleteUser(@PathVariable("id") long id) {
         userService.deleteUser(id);
         return response(NO_CONTENT, "User deleted successfully!");
     }
@@ -129,17 +142,15 @@ public class UserResource extends ExceptionHandling {
         return new ResponseEntity<> (user, OK);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody User user)
-            throws UserNotFoundException, EmailExistException, UsernameExistException {
 
-        authenticate(user.getUsername(), user.getPassword());
-        User loginUser = userService.findUserByUsername(user.getUsername());
-        UserPrincipal userPrincipal = new UserPrincipal(loginUser);
-        HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
-
-        return new ResponseEntity<>(loginUser, OK);
+    private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
+        HttpResponse body = new HttpResponse(httpStatus.value(),
+                                             httpStatus,
+                                             httpStatus.getReasonPhrase().toUpperCase(),
+                                             message.toUpperCase());
+        return new ResponseEntity<>(body, httpStatus);
     }
+
 
 
     private HttpHeaders getJwtHeader(UserPrincipal user) {
